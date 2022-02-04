@@ -1,0 +1,28 @@
+%{
+    #define YY_USER_ACTION update_cursor();
+
+    #include "photon.h"
+    #include "y.tab.h"
+
+    extern void lexer_error();
+
+    string_t lexeme(string_t into, int* ptrleng);
+%}
+
+alph            [a-zA-Z_]
+digit           [0-9]
+line            ([\n\r]|\n\r|\r\n)
+blank           [ \t\v\f]
+word            ({aplha}|{digit})
+
+indenitifer     {alpha}{word}*
+natural         {digit}+
+posreal         {digit}+(\.{digit}+)?
+
+comment         \\[^{line}]*{line}
+
+%%
+
+
+.               { lexer_error();        }
+<<EOF>>         { reaturn TEOF;         }
