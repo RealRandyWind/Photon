@@ -1,0 +1,75 @@
+%{
+    #include "photon.h"
+
+    extern int yyparse();
+    extern int yylex();
+
+    void yyerror(const char* msg);
+%}
+
+%token TFUNCTION TBOOL TNOT
+%token TPARENTHESISOPEN TPARENTHESISCLOSE TBRACKETCLOSE TBRACKETOPEN
+%token TCOLON TCOMMA TDOT TLINE TBLANK
+%token TADD TMUL TREL
+%token TIDENTIFIER TNUMBER TEOF
+
+%%
+
+function:
+    TFUNCTION TIDENTIFIER
+    TPARENTHESISOPEN
+    identifier_list
+    TPARENTHESISCLOSE
+    TCOLON
+    TLINE
+    statement_list
+    | function TLINE
+    ;
+
+identifier_list:
+    TIDENTIFIER
+    | identifier_list TCOMMA TIDENTIFIER
+    ;
+
+statement_list:
+    TBLANK statement TLINE
+    | statement_list TLINE TBLANK statement
+    ;
+    
+statement:
+    variable_composit TREL expression
+    ;
+
+expression:
+    TNUMBER
+    | variable_composit
+    | expression_mul
+
+
+argument_list:
+    expression
+    | argument_list TCOMMA expression
+    ;
+
+variable_composit:
+    TIDENTIFIER
+    | TDOT variable_composit
+    | TBRACKETOPEN  expression TBRACKETCLOSE
+    | TPARENTHESISOPEN argument_list TPARENTHESISCLOSE
+    ;
+
+expression_mul:
+    TNUMBER TMUL TNUMBER
+    ;
+
+%%
+
+int main() {
+	yyparse();
+	printf(PARSER_SUCCESS_MSG);
+	return EXIT_SUCCESS;
+}
+
+void yyerror (const char* msg) {
+	parser_error();
+ }

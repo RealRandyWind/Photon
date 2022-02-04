@@ -9,20 +9,67 @@
     string_t lexeme(string_t into, int* ptrleng);
 %}
 
-alph            [a-zA-Z_]
+alpha           [a-zA-Z_]
 digit           [0-9]
 line            ([\n\r]|\n\r|\r\n)
 blank           [ \t\v\f]
-word            ({aplha}|{digit})
+word            ({alpha}|{digit})
 
-indenitifer     {alpha}{word}*
+identifier      {alpha}{word}*
 natural         {digit}+
 posreal         {digit}+(\.{digit}+)?
+integer         {natural}
+real            {posreal}
 
 comment         \\[^{line}]*{line}
 
 %%
 
 
-.               { lexer_error();        }
-<<EOF>>         { reaturn TEOF;         }
+(?i:"def")      { return TFUNCTION;         }
+(?i:"true")     { return TBOOL;             }
+(?i:"false")    { return TBOOL;             }
+(?i:"not")      { return TNOT;              }
+
+"("             { return TPARENTHESISOPEN;  }
+")"             { return TPARENTHESISCLOSE; }
+"["             { return TBRACKETOPEN;      }
+"]"             { return TBRACKETCLOSE;     }
+":"             { return TCOLON;            }
+"."             { return TDOT;              }
+","             { return TCOMMA;            }
+"/"             { return TMUL;              }
+"*"             { return TMUL;              }
+"="             { return TREL;              }
+"+="            { return TREL;              }
+"-="            { return TREL;              }
+"*="            { return TREL;              }
+"/="            { return TREL;              }
+
+{integer}       { return TNUMBER;           }
+{real}          { return TNUMBER;           }
+{identifier}    { return TIDENTIFIER;       }
+{line}          { return TLINE;             }
+{blank}+        { return TBLANK;            }
+
+{comment}       { /* do nothing */          }
+
+.               { lexer_error();            }
+<<EOF>>         { reaturn TEOF;             }
+
+%%
+
+string_t lexeme(string_t into, int* ptrleng)
+{
+    size_t k;
+
+    if(ptrleng) { (*ptrleng) = yyleng; }
+    if(!into) { into = raw_string(yyleng); }
+    for(k = 0; (into[k] = yytext[k]); ++k) { /* do nothing */ }
+    into[k] = nullchr;
+    return into;
+}
+
+int yywrap(void) {
+    return 1;
+}
